@@ -15,6 +15,8 @@ app.use(express.json()) //req.body
 
 app.use('/auth', require('./routes/jwtAuth'))
 
+app.use('/dashboard', require('./routes/dashboard'))
+
 
 app.listen(5001, ()=>{
   console.log("The server is running on port 5001")
