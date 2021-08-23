@@ -2,6 +2,8 @@ const router = require("express").Router()
 const pool = require("../db")
 const bcrypt = require("bcrypt")
 
+const jwtGenerator = require('../utils/jwtGenerator')
+
 //registering
 
 router.post("/register", async (req, res) => {
@@ -37,16 +39,56 @@ router.post("/register", async (req, res) => {
 
 		//5 generate jwt token
 
+		const token = jwtGenerator(newUser.rows[0].user_id)
 
-		res.json(newUser.rows[0])
+		res.json({token})
+
+
+		return res.json(newUser.rows[0])
 	} catch (error) {
 		console.error(error.message)
 		res.status(500).send("Server Error")
 	}
 })
 
-router.get('/get', (req,res)=>{
-	return res.status(201).send("Im working")
+//login route
+
+router.post('/login', async (req, res)=>{
+	try{
+
+		// destructure req. body
+		const {email, password} = req.body
+
+		//check if user doens't exist (or throw error)
+
+		const user = await pool.query(
+			"SELECT * FROM users WHERE user_email = $1", [email]
+		)
+
+		if (user.rows.length === 0){
+			return res.status(401).send("Please check email and password and try again")
+		}
+
+		//check if incoming pword is same as db pword
+
+		const validPassword = await bcrypt.compare(
+      password,
+      user.rows[0].user_password
+    )
+
+		if (!validPassword){
+			return res.status(401).send("Please check email and password and try again")
+		}
+
+		//give jwt token
+
+		const token = jwtGenerator(user.rows[0].user_id)
+		res.json({token})
+
+	}catch(error){
+		console.error(error.message)
+		res.status(500).send("Server Error")
+	}
 })
 
 module.exports = router
