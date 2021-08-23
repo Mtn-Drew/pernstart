@@ -6,8 +6,8 @@ const app = express()
 
 // middleware
 
-app.use(express.json()) //req.body
 app.use(cors())
+app.use(express.json()) //req.body
 
 // routes
 
